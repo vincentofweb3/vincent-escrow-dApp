@@ -108,7 +108,6 @@ export default function Home() {
         address: activeContract,
         abi: abi,
         functionName: "releasePayment",
-        // Removed args: [] to fix the Encoding Length Mismatch error
       });
     } catch (error) {
       console.error("Release failed:", error);
@@ -148,19 +147,19 @@ export default function Home() {
 
   if (!role) {
   return (
-    <main className="min-h-screen flex bg-black text-white overflow-hidden">
+    <main className="min-h-screen flex flex-col md:flex-row bg-black text-white overflow-hidden">
       <div
         onClick={() => setRole("client")}
-        className="flex-1 flex flex-col justify-center items-center border-r border-white/5 hover:bg-blue-600/10 cursor-pointer transition-all duration-700 group relative"
+        className="flex-1 flex flex-col justify-center items-center border-b md:border-b-0 md:border-r border-white/5 hover:bg-blue-600/10 cursor-pointer transition-all duration-700 group relative p-10"
       >
         <div className="z-10 text-center">
-          <h1 className="text-7xl font-black italic group-hover:scale-110 transition-transform duration-500 text-blue-500 tracking-tighter">
+          <h1 className="text-5xl md:text-7xl font-black italic group-hover:scale-110 transition-transform duration-500 text-blue-500 tracking-tighter">
             CLIENT
           </h1>
-          <div className="mt-4 w-48 h-[2px] bg-blue-900/30 overflow-hidden relative mx-auto">
+          <div className="mt-4 w-32 md:w-48 h-[2px] bg-blue-900/30 overflow-hidden relative mx-auto">
             <div className="absolute inset-0 bg-blue-500 shadow-[0_0_15px_#3b82f6] animate-scan" />
           </div>
-          <p className="mt-4 text-[10px] font-bold tracking-[0.4em] text-blue-400/50 opacity-0 group-hover:opacity-100 transition-opacity uppercase">
+          <p className="mt-4 text-[10px] font-bold tracking-[0.4em] text-blue-400/50 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity uppercase">
             Deploy & Fund
           </p>
         </div>
@@ -169,16 +168,16 @@ export default function Home() {
 
       <div
         onClick={() => setRole("freelancer")}
-        className="flex-1 flex flex-col justify-center items-center hover:bg-emerald-600/10 cursor-pointer transition-all duration-700 group relative"
+        className="flex-1 flex flex-col justify-center items-center hover:bg-emerald-600/10 cursor-pointer transition-all duration-700 group relative p-10"
       >
         <div className="z-10 text-center">
-          <h1 className="text-7xl font-black italic group-hover:scale-110 transition-transform duration-500 text-emerald-500 tracking-tighter">
+          <h1 className="text-5xl md:text-7xl font-black italic group-hover:scale-110 transition-transform duration-500 text-emerald-500 tracking-tighter">
             FREELANCER
           </h1>
-          <div className="mt-4 w-48 h-[2px] bg-emerald-900/30 overflow-hidden relative mx-auto">
+          <div className="mt-4 w-32 md:w-48 h-[2px] bg-emerald-900/30 overflow-hidden relative mx-auto">
             <div className="absolute inset-0 bg-emerald-500 shadow-[0_0_15px_#10b981] animate-scan" />
           </div>
-          <p className="mt-4 text-[10px] font-bold tracking-[0.4em] text-emerald-400/50 opacity-0 group-hover:opacity-100 transition-opacity uppercase">
+          <p className="mt-4 text-[10px] font-bold tracking-[0.4em] text-emerald-400/50 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity uppercase">
             Work & Withdraw
           </p>
         </div>
@@ -199,9 +198,9 @@ export default function Home() {
 }
 
   return (
-    <main className="min-h-screen bg-[#050505] text-white p-8 font-sans">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex justify-between items-center bg-white/5 p-4 rounded-3xl border border-white/10">
+    <main className="min-h-screen bg-[#050505] text-white p-4 md:p-8 font-sans">
+      <div className="max-w-6xl mx-auto space-y-4 md:space-y-6">
+        <div className="flex justify-between items-center bg-white/5 p-4 rounded-2xl md:rounded-3xl border border-white/10">
           <button
             onClick={() => {
               setRole(null);
@@ -214,14 +213,14 @@ export default function Home() {
           {!isConnected ? (
             <button
               onClick={() => connect({ connector: injected() })}
-              className="bg-white text-black px-8 py-2 rounded-2xl font-black text-sm hover:bg-gray-200"
+              className="bg-white text-black px-4 md:px-8 py-2 rounded-xl md:rounded-2xl font-black text-xs md:text-sm hover:bg-gray-200"
             >
-              CONNECT WALLET
+              CONNECT
             </button>
           ) : (
             <div className="flex gap-4 items-center">
               <span className="text-[10px] font-mono text-blue-400">
-                {address?.slice(0, 6)}...{address?.slice(-4)}
+                {address?.slice(0, 4)}...{address?.slice(-4)}
               </span>
               <button
                 onClick={() => disconnect()}
@@ -233,21 +232,21 @@ export default function Home() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-4 bg-white/5 p-6 rounded-[2rem] border border-white/10 h-[600px] flex flex-col overflow-hidden">
-            <h2 className="text-xl font-black italic mb-6">ESCROW LIST</h2>
-            <div className="flex-1 overflow-y-auto mb-4 pr-2">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
+          <div className="lg:col-span-4 bg-white/5 p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-white/10 h-auto lg:h-[600px] flex flex-col overflow-hidden">
+            <h2 className="text-lg md:text-xl font-black italic mb-4 md:mb-6">ESCROW LIST</h2>
+            <div className="flex-1 overflow-y-auto max-h-[300px] lg:max-h-full mb-4 pr-2">
               {escrows?.map((addr, i) => (
                 <button
                   key={i}
                   onClick={() => setActiveContract(addr)}
-                  className={`w-full text-left p-4 mb-2 rounded-2xl border transition-all ${
+                  className={`w-full text-left p-3 md:p-4 mb-2 rounded-xl md:rounded-2xl border transition-all ${
                     activeContract === addr
                       ? "bg-blue-600 border-blue-400"
                       : "bg-white/5 border-transparent hover:border-white/20"
                   }`}
                 >
-                  <p className="text-[11px] font-mono truncate">{addr}</p>
+                  <p className="text-[10px] md:text-[11px] font-mono truncate">{addr}</p>
                 </button>
               ))}
             </div>
@@ -267,20 +266,20 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="lg:col-span-8 space-y-6">
+          <div className="lg:col-span-8 space-y-4 md:space-y-6">
             {role === "client" && (
-              <div className="bg-blue-600/10 p-6 rounded-[2rem] border border-blue-500/20">
-                <div className="flex gap-3">
+              <div className="bg-blue-600/10 p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-blue-500/20">
+                <div className="flex flex-col md:flex-row gap-3">
                   <input
                     placeholder="Freelancer Wallet Address"
                     value={freelancerAddr}
                     onChange={(e) => setFreelancerAddr(e.target.value)}
-                    className="flex-1 bg-black/60 border border-white/10 p-4 rounded-2xl text-sm font-mono outline-none focus:border-blue-500"
+                    className="flex-1 bg-black/60 border border-white/10 p-4 rounded-xl md:rounded-2xl text-xs md:text-sm font-mono outline-none focus:border-blue-500"
                   />
                   <button
                     onClick={handleCreate}
                     disabled={isTxLoading}
-                    className="bg-blue-600 px-10 rounded-2xl font-black hover:bg-blue-500"
+                    className="bg-blue-600 px-6 md:px-10 py-4 md:py-0 rounded-xl md:rounded-2xl font-black text-sm hover:bg-blue-500"
                   >
                     {isTxLoading ? "..." : "DEPLOY"}
                   </button>
@@ -289,17 +288,17 @@ export default function Home() {
             )}
 
             {activeContract ? (
-              <div className="bg-white/5 p-10 rounded-[2.5rem] border border-white/10">
-                <div className="flex justify-between items-start mb-10">
-                  <h2 className="text-4xl font-black italic uppercase">Workspace</h2>
-                  <div className="flex flex-col items-end gap-2">
+              <div className="bg-white/5 p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] border border-white/10">
+                <div className="flex flex-col md:flex-row justify-between items-start mb-6 md:mb-10 gap-4">
+                  <h2 className="text-2xl md:text-4xl font-black italic uppercase">Workspace</h2>
+                  <div className="flex flex-col items-start md:items-end gap-2">
                     {isReleased && !isCompleted && (
-                      <div className="bg-emerald-500/20 text-emerald-400 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/30">
+                      <div className="bg-emerald-500/20 text-emerald-400 px-3 md:px-4 py-1 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest border border-emerald-500/30">
                         ✓ Payment Released
                       </div>
                     )}
                     <div
-                      className={`px-6 py-2 rounded-full text-[10px] font-black ${
+                      className={`px-4 md:px-6 py-1 md:py-2 rounded-full text-[8px] md:text-[10px] font-black ${
                         isCompleted
                           ? "bg-emerald-500 text-black"
                           : isReleased
@@ -314,16 +313,16 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="bg-black/40 p-8 rounded-3xl border border-white/5 mb-10">
-                  <p className="text-[10px] text-gray-500 uppercase font-bold mb-2 tracking-widest text-blue-400">
+                <div className="bg-black/40 p-6 md:p-8 rounded-2xl md:rounded-3xl border border-white/5 mb-6 md:mb-10">
+                  <p className="text-[9px] md:text-[10px] text-gray-500 uppercase font-bold mb-2 tracking-widest text-blue-400">
                     Escrow Balance
                   </p>
-                  <p className="text-6xl font-black tracking-tighter">
+                  <p className="text-4xl md:text-6xl font-black tracking-tighter">
                     {contractBalance ? formatEther(contractBalance) : "0.00"}{" "}
-                    <span className="text-sm">USDC</span>
+                    <span className="text-xs md:text-sm">USDC</span>
                   </p>
                   {contractClient && (
-                    <p className="text-[10px] text-gray-600 mt-4 font-mono">
+                    <p className="text-[8px] md:text-[10px] text-gray-600 mt-4 font-mono truncate">
                       Verified Client: {contractClient}
                     </p>
                   )}
@@ -332,18 +331,18 @@ export default function Home() {
                 {role === "client" ? (
                   <>
                     {!isFunded && (
-                      <div className="space-y-4">
+                      <div className="space-y-3 md:space-y-4">
                         <input
                           placeholder="0.00"
                           type="number"
                           value={amount}
                           onChange={(e) => setAmount(e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 p-8 rounded-3xl text-5xl font-black text-center outline-none focus:border-blue-500"
+                          className="w-full bg-white/5 border border-white/10 p-6 md:p-8 rounded-2xl md:rounded-3xl text-3xl md:text-5xl font-black text-center outline-none focus:border-blue-500"
                         />
                         <button
                           onClick={handleDeposit}
                           disabled={isTxLoading}
-                          className="w-full bg-blue-600 py-8 rounded-3xl font-black text-2xl uppercase hover:bg-blue-500"
+                          className="w-full bg-blue-600 py-6 md:py-8 rounded-2xl md:rounded-3xl font-black text-lg md:text-2xl uppercase hover:bg-blue-500"
                         >
                           {isTxLoading ? "Processing..." : "Fund Contract"}
                         </button>
@@ -353,15 +352,15 @@ export default function Home() {
                       <button
                         onClick={handleRelease}
                         disabled={isTxLoading}
-                        className="w-full bg-blue-600 py-8 rounded-3xl font-black text-2xl uppercase hover:bg-blue-500 shadow-xl shadow-blue-600/20"
+                        className="w-full bg-blue-600 py-6 md:py-8 rounded-2xl md:rounded-3xl font-black text-lg md:text-2xl uppercase hover:bg-blue-500 shadow-xl shadow-blue-600/20"
                       >
-                        {isTxLoading ? "Confirming Release..." : "Release to Freelancer"}
+                        {isTxLoading ? "Confirming..." : "Release to Freelancer"}
                       </button>
                     )}
                     {isReleased && !isCompleted && (
-                      <div className="p-8 border border-dashed border-white/10 rounded-3xl text-center">
-                        <p className="text-gray-500 text-xs font-bold uppercase">
-                          Payment has been authorized. Waiting for freelancer to withdraw.
+                      <div className="p-6 md:p-8 border border-dashed border-white/10 rounded-2xl md:rounded-3xl text-center">
+                        <p className="text-gray-500 text-[10px] md:text-xs font-bold uppercase">
+                          Waiting for freelancer to withdraw.
                         </p>
                       </div>
                     )}
@@ -370,16 +369,16 @@ export default function Home() {
                   isFunded &&
                   !isCompleted &&
                   (!isReleased ? (
-                    <div className="p-10 border-2 border-dashed border-white/10 rounded-[2rem] text-center">
-                      <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">
-                        Waiting for Client to release payment...
+                    <div className="p-6 md:p-10 border-2 border-dashed border-white/10 rounded-2xl md:rounded-[2rem] text-center">
+                      <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px] md:text-xs">
+                        Waiting for Client to release...
                       </p>
                     </div>
                   ) : (
                     <button
                       onClick={handleWithdraw}
                       disabled={isTxLoading}
-                      className="w-full bg-emerald-500 py-10 rounded-3xl font-black text-3xl text-black uppercase hover:bg-emerald-400 transition-all shadow-xl shadow-emerald-500/20"
+                      className="w-full bg-emerald-500 py-8 md:py-10 rounded-2xl md:rounded-3xl font-black text-xl md:text-3xl text-black uppercase hover:bg-emerald-400 transition-all shadow-xl shadow-emerald-500/20"
                     >
                       {isTxLoading ? "Transferring..." : "Withdraw Funds"}
                     </button>
@@ -387,16 +386,16 @@ export default function Home() {
                 )}
 
                 {isCompleted && (
-                  <div className="p-10 bg-emerald-500/10 border border-emerald-500/20 rounded-[2rem] text-center">
-                    <p className="text-emerald-500 font-black text-xl italic uppercase">
+                  <div className="p-6 md:p-10 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl md:rounded-[2rem] text-center">
+                    <p className="text-emerald-500 font-black text-lg md:text-xl italic uppercase">
                       Transaction Complete
                     </p>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="h-[400px] flex flex-col justify-center items-center bg-white/2 rounded-[2.5rem] border border-dashed border-white/10 text-gray-700">
-                <p className="uppercase tracking-[0.3em] text-[10px] font-bold">
+              <div className="h-[200px] md:h-[400px] flex flex-col justify-center items-center bg-white/2 rounded-2xl md:rounded-[2.5rem] border border-dashed border-white/10 text-gray-700">
+                <p className="uppercase tracking-[0.3em] text-[8px] md:text-[10px] font-bold">
                   Select a contract address
                 </p>
               </div>
