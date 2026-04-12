@@ -103,12 +103,12 @@ export default function Home() {
       alert("Please select an escrow from the list first!");
       return;
     }
-
     try {
       await writeContractAsync({
         address: activeContract,
         abi: abi,
         functionName: "releasePayment",
+        // Removed args: [] to fix the Encoding Length Mismatch error
       });
     } catch (error) {
       console.error("Release failed:", error);
@@ -116,6 +116,7 @@ export default function Home() {
   };
 
   const handleWithdraw = async () => {
+    if (!activeContract) return;
     try {
       await writeContractAsync({
         address: activeContract,
@@ -251,7 +252,6 @@ export default function Home() {
               ))}
             </div>
 
-            {/* TESTER TOOLKIT ADDED HERE */}
             <div className="p-4 bg-white/5 border border-dashed border-white/20 rounded-2xl">
               <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-3">Tester Toolkit</p>
               <div className="flex flex-col gap-2">
