@@ -1,0 +1,14 @@
+node_modules
+    .env
+    ```
+4.  **Commit and Push:**
+    
+```bash
+    git add .
+    git commit -m "Added start script and ignored env"
+    git push origin main
+    ```
+
+**Now your bot is officially ready for Railway!** Once you connect this repo to Railway, it will see `"start": "node bot.js"` and automatically know what to do. 
+
+Shall we head over to the Railway dashboard next?

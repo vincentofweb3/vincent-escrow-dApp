@@ -10,10 +10,10 @@ import { injected } from "wagmi/connectors";
 const arcTestnet = defineChain({
   id: 5042002,
   name: "Arc Network Testnet",
-  nativeCurrency: { 
-    name: "USDC", 
-    symbol: "USDC", 
-    decimals: 18 
+  nativeCurrency: {
+    name: "USDC",
+    symbol: "USDC",
+    decimals: 18,
   },
   rpcUrls: {
     default: { http: ["https://arc-testnet.drpc.org"] },
@@ -36,9 +36,7 @@ const queryClient = new QueryClient();
 export function Providers({ children }) {
   return (
     <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </WagmiProvider>
   );
 }
