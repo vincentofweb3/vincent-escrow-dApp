@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { defineChain } from "viem";
 import { injected } from "wagmi/connectors";
+import { mainnet } from "wagmi/chains"; // Import this
 
 // ✅ EXACT ARC NETWORK CONFIG FROM YOUR SCREENSHOT
 const arcTestnet = defineChain({
@@ -24,10 +25,11 @@ const arcTestnet = defineChain({
 });
 
 const config = createConfig({
-  chains: [arcTestnet],
+  chains: [arcTestnet, mainnet],
   connectors: [injected()],
   transports: {
     [arcTestnet.id]: http(),
+    [mainnet.id]: http(),
   },
 });
 

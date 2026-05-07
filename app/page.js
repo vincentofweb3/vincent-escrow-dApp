@@ -18,6 +18,8 @@ import {
 } from "../lib/contract";
 import { parseEther, formatEther } from "viem";
 
+import ConnectWallet from "../components/ConnectWallet";
+
 import { useConfig } from "wagmi";
 import { waitForTransactionReceipt } from "@wagmi/core";
 
@@ -51,7 +53,7 @@ export default function Home() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [deployedAddress, setDeployedAddress] = useState("");
 
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount(); // Ensure 'chain' is here!
   const { connect } = useConnect();
   const { disconnect } = useDisconnect();
 
@@ -369,6 +371,13 @@ export default function Home() {
   }, []);
 
   const handleCreateAndFund = async () => {
+    if (Number(chain?.id) !== 5042002) {
+      alert(
+        "Please switch to Arc Network using the button in the top right before executing!",
+      );
+      return;
+    }
+
     try {
       const amountInWei = parseEther(amount);
 
@@ -938,30 +947,112 @@ export default function Home() {
           </div>
 
           <div className="flex gap-4 items-center">
-            {isConnected ? (
-              <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/10 shadow-inner">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-xs font-mono text-blue-400 font-bold">
-                  {address?.slice(0, 6)}...{address?.slice(-4)}
-                </span>
-                <button
-                  onClick={() => disconnect()}
-                  className="text-[10px] font-black text-red-500 uppercase hover:text-red-400 ml-2"
-                >
-                  Disconnect
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => connect({ connector: injected() })}
-                className="bg-white text-black px-6 lg:px-8 py-2.5 lg:py-3 rounded-xl lg:rounded-2xl font-black text-xs lg:text-sm hover:shadow-[0_0_20px_rgba(255,255,255,0.15)] transition-all"
-              >
-                CONNECT WALLET
-              </button>
-            )}
+            <ConnectWallet />
           </div>
         </div>
       </nav>
+
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Header / Nav would be above here */}
+
+        {/* ONBOARDING BLOCKS - Added max-width and centered */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+          {/* CLIENT BLOCK */}
+          <div className="group bg-blue-900/5 border border-blue-500/20 rounded-3xl p-8 hover:border-blue-500/40 transition-all duration-300 shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-blue-400 font-black text-xs tracking-widest uppercase">
+                Client Protocol
+              </h3>
+              <span className="bg-blue-500/20 text-blue-400 text-[10px] px-2 py-1 rounded-full font-bold">
+                STEP 01
+              </span>
+            </div>
+            <h2 className="text-white text-xl font-bold mb-4">
+              Setup & Deposit
+            </h2>
+            <div className="space-y-4">
+              <div className="flex gap-4">
+                <div className="flex-none w-6 h-6 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-[10px] text-blue-400 font-bold">
+                  1
+                </div>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  Connect your wallet to the dashboard by switching to{" "}
+                  <code className="text-pink-400">Arc network testnet</code>{" "}
+                  first.
+                </p>
+              </div>
+              <div className="flex gap-4">
+                <div className="flex-none w-6 h-6 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-[10px] text-blue-400 font-bold">
+                  2
+                </div>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  Connect / link your wallet to the{" "}
+                  <a
+                    href="https://t.me/vantagedAppBot"
+                    className="text-blue-400 hover:underline"
+                  >
+                    Sentinel Bot
+                  </a>{" "}
+                  via Telegram using{" "}
+                  <code className="text-pink-400">/start</code>.
+                </p>
+              </div>
+              <div className="flex gap-4">
+                <div className="flex-none w-6 h-6 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-[10px] text-blue-400 font-bold">
+                  3
+                </div>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  Define your agreement in the Intent Engine below to lock funds
+                  in escrow.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* FREELANCER BLOCK */}
+          <div className="group bg-emerald-900/5 border border-emerald-500/20 rounded-3xl p-8 hover:border-emerald-500/40 transition-all duration-300 shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-emerald-400 font-black text-xs tracking-widest uppercase">
+                Freelancer Protocol
+              </h3>
+              <span className="bg-emerald-500/20 text-emerald-400 text-[10px] px-2 py-1 rounded-full font-bold">
+                STEP 02
+              </span>
+            </div>
+            <h2 className="text-white text-xl font-bold mb-4">
+              Submission & Pay
+            </h2>
+            <div className="space-y-4">
+              <div className="flex gap-4">
+                <div className="flex-none w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-[10px] text-emerald-400 font-bold">
+                  1
+                </div>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  Ensure your wallet is linked to the bot to receive real-time
+                  notifications.
+                </p>
+              </div>
+              <div className="flex gap-4">
+                <div className="flex-none w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-[10px] text-emerald-400 font-bold">
+                  2
+                </div>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  Upload deliverables directly to Telegram. Payment is released
+                  upon client approval.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* INTENT ENGINE SECTION - Visual separator */}
+        <div className="relative pt-8 border-t border-white/5">
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a0a] px-4 text-[10px] text-white/20 font-black uppercase tracking-[0.3em]">
+            Autonomous Intent Engine
+          </div>
+          {/* Your Intent Engine and Live Log component goes here */}
+        </div>
+      </div>
 
       {/* MAIN CONTENT AREA */}
       <div className="max-w-7xl mx-auto p-4 lg:p-8 flex flex-col lg:flex-row gap-6 lg:gap-10">
@@ -1133,20 +1224,29 @@ export default function Home() {
       {showSuccess && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 lg:p-0">
           {/* Backdrop */}
-          <div 
+          <div
             className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-300"
             onClick={() => setShowSuccess(false)}
           />
-          
+
           {/* Modal Card */}
           <div className="relative bg-[#111113] border border-white/10 w-full max-w-[450px] rounded-[2.5rem] p-8 lg:p-12 shadow-[0_0_100px_rgba(37,99,235,0.2)] animate-in zoom-in-95 duration-300">
-            
             {/* Success Icon Animation */}
             <div className="flex justify-center mb-8">
               <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center border border-emerald-500/20">
                 <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.4)]">
-                  <svg className="w-6 h-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  <svg
+                    className="w-6 h-6 text-black"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                 </div>
               </div>
@@ -1157,15 +1257,19 @@ export default function Home() {
                 INTENT <span className="text-blue-500">SECURED</span>
               </h3>
               <p className="text-gray-400 text-sm font-medium leading-relaxed">
-                The Vantage Sentinel has successfully deployed your escrow contract to the Arc Mainnet.
+                The Vantage Sentinel has successfully deployed your escrow
+                contract to the Arc Mainnet.
               </p>
             </div>
 
             <div className="mt-10 space-y-4">
               <div className="bg-black/40 border border-white/5 p-4 rounded-2xl">
-                <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 font-bold">Contract Address</p>
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 font-bold">
+                  Contract Address
+                </p>
                 <p className="text-[11px] font-mono text-blue-400 truncate">
-                  {deployedAddress || "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"}
+                  {deployedAddress ||
+                    "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"}
                 </p>
               </div>
 
@@ -1175,9 +1279,13 @@ export default function Home() {
               >
                 VIEW DASHBOARD
               </button>
-              
+
               <button
-                onClick={() => window.open(`https://explorer.arc.network/address/${deployedAddress}`)}
+                onClick={() =>
+                  window.open(
+                    `https://explorer.arc.network/address/${deployedAddress}`,
+                  )
+                }
                 className="w-full text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors"
               >
                 View on Explorer
