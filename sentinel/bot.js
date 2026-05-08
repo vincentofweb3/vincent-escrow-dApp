@@ -80,7 +80,7 @@ bot.start((ctx) => {
       );
     } else {
       ctx.reply(
-        "Welcome to Vantage Escrow! Use /start <wallet_address> to link your account.",
+        "Welcome to Vantage Escrow! Use /start <wallet_address> to link your account...",
       );
     }
   } catch (e) {
