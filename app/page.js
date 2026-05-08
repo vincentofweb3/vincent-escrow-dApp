@@ -496,7 +496,7 @@ export default function Home() {
 
       await tx.wait();
 
-      // addLog(`Release Confirmed! ${amount || "Escrow"} ARC sent.`, "FINISH");
+      addLog(`Release Confirmed! ${amount || "Escrow"} ARC sent.`, "FINISH");
 
       // 5. Success Cleanup
       await fetch("/api/bot-status", {

@@ -150,10 +150,24 @@ bot.on(["photo", "document", "video"], async (ctx) => {
     const fileLink = await ctx.telegram.getFileLink(fileId);
     if (data.buyerChatId) {
       const caption = `<b>🔔 Work Submitted!</b>\nContract: <code>${addr}</code>\nFile: <code>${fileName}</code>`;
-      await bot.telegram.sendDocument(data.buyerChatId, fileId, {
-        caption,
-        parse_mode: "HTML",
-      });
+
+      // FIX: Use the appropriate method for each file type
+      if (ctx.message.photo) {
+        await bot.telegram.sendPhoto(data.buyerChatId, fileId, {
+          caption,
+          parse_mode: "HTML",
+        });
+      } else if (ctx.message.video) {
+        await bot.telegram.sendVideo(data.buyerChatId, fileId, {
+          caption,
+          parse_mode: "HTML",
+        });
+      } else {
+        await bot.telegram.sendDocument(data.buyerChatId, fileId, {
+          caption,
+          parse_mode: "HTML",
+        });
+      }
     }
 
     ctx.replyWithHTML("📦 <b>Deliverable Delivered!</b>");
@@ -191,11 +205,11 @@ app.post("/notify-release", async (req, res) => {
   }
 
   // FIX: Sync the "FINISH" status to the Live History UI
-  await notifyDashboard({
-    status: "FINISH",
-    message: `Release Confirmed! ${finalAmount} ARC sent.`,
-    escrowAddress: eAddr,
-  });
+  // await notifyDashboard({
+  //   status: "FINISH",
+  //   message: `Release Confirmed! ${finalAmount} ARC sent.`,
+  //   escrowAddress: eAddr,
+  // });
 
   res.sendStatus(200);
 });

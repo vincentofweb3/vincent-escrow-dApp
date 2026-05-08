@@ -44,12 +44,12 @@ export async function POST(req) {
           }),
         });
         // After a successful release, RESET the status to IDLE
-        latestBotMessage = {
-          status: "IDLE",
-          message: body.amount
-            ? `Released ${body.amount} ARC`
-            : "Monitoring...",
-        };
+        // latestBotMessage = {
+        //   status: "IDLE",
+        //   message: body.amount
+        //     ? `Released ${body.amount} ARC`
+        //     : "Monitoring...",
+        // };
       } catch (e) {
         console.error("Bot API unreachable");
       }
