@@ -369,7 +369,7 @@ bot.launch().then(() => console.log("✅ Vantage Sentinel Bot is LIVE"));
 //       ctx.reply(
 //         "Welcome to VantageEscrowdApp! Please connect your wallet correctly",
 //         "- As a Client, use /start 'YOUR_WALLET_ADDRESS' to connect your wallet to the bot",
-//         "whule as a freelancer, use /start 'YOUR_WALLET_ADDRESS' to recieve your funds",
+//         "while as a freelancer, use /start 'YOUR_WALLET_ADDRESS' to recieve your funds",
 //       );
 //     }
 //   } catch (e) {
