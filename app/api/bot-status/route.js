@@ -40,13 +40,15 @@ export async function POST(req) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             escrowAddress: body.escrowAddress,
-            amount: body.amount,
+            amount: body.amount, // Ensure the bot gets the real amount
           }),
         });
         // After a successful release, RESET the status to IDLE
         latestBotMessage = {
           status: "IDLE",
-          message: "Payment released. Monitoring...",
+          message: body.amount
+            ? `Released ${body.amount} ARC`
+            : "Monitoring...",
         };
       } catch (e) {
         console.error("Bot API unreachable");
