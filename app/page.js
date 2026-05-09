@@ -498,11 +498,15 @@ export default function Home() {
 
       addLog(`Release Confirmed! ${amount || "Escrow"} ARC sent.`, "FINISH");
 
-      // 5. Success Cleanup
+      // CORRECTED CODE
       await fetch("/api/bot-status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "ESCROW_RELEASED" }),
+        body: JSON.stringify({
+          status: "ESCROW_RELEASED",
+          amount: amount, // Send the real amount here
+          escrowAddress: checksumAddress, // Send the address too
+        }),
       });
 
       alert("🚀 Success! Funds released.");

@@ -43,13 +43,6 @@ export async function POST(req) {
             amount: body.amount, // Ensure the bot gets the real amount
           }),
         });
-        // After a successful release, RESET the status to IDLE
-        // latestBotMessage = {
-        //   status: "IDLE",
-        //   message: body.amount
-        //     ? `Released ${body.amount} ARC`
-        //     : "Monitoring...",
-        // };
       } catch (e) {
         console.error("Bot API unreachable");
       }
