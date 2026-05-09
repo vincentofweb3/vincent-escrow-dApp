@@ -198,10 +198,21 @@ app.post("/notify-release", async (req, res) => {
   const finalAmount = amount || (data ? data.amount : "1");
 
   if (data && data.freelancerChatId) {
+    // SUCCESS: We found the freelancer's Chat ID!
     const msg = `💰 <b>Payment Released!</b>\nContract: <code>${escrowAddress}</code>\nAmount: <b>${finalAmount} ARC</b>\n\nTransaction confirmed! 🚀`;
-    bot.telegram.sendMessage(data.freelancerChatId, msg, {
-      parse_mode: "HTML",
-    });
+
+    bot.telegram
+      .sendMessage(data.freelancerChatId, msg, {
+        parse_mode: "HTML",
+      })
+      .catch((e) => console.error("Failed to notify freelancer:", e.message));
+
+    console.log(`✅ Notified freelancer for escrow: ${eAddr}`);
+  } else {
+    // FAIL: Bot doesn't know who this freelancer is (likely due to a restart)
+    console.log(
+      `⚠️ Could not notify freelancer for ${eAddr}. ChatId not in memory.`,
+    );
   }
 
   // FIX: Sync the "FINISH" status to the Live History UI
