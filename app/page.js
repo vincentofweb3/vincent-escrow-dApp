@@ -958,26 +958,25 @@ export default function Home() {
         </div>
       </nav>
 
+      <div className="w-full bg-yellow-950/20 border-y border-yellow-600/30 py-2 overflow-hidden">
+        <div className="flex whitespace-nowrap animate-marquee">
+          {/* First copy of text */}
+          <span className="text-yellow-500 text-sm font-medium px-4">
+            ⚠️ <strong>Note:</strong> This is a testnet phase and it only uses
+            test tokens at the moment, but nevertheless it accepts real assets
+            as well.
+          </span>
+          {/* Second copy of text (the one that follows the first) */}
+          <span className="text-yellow-500 text-sm font-medium px-4">
+            ⚠️ <strong>Note:</strong> This is a testnet phase and it only uses
+            test tokens at the moment, but nevertheless it accepts real assets
+            as well.
+          </span>
+        </div>
+      </div>
+
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header / Nav would be above here */}
-        <div className="w-full bg-yellow-500/10 border-y border-yellow-500/20 py-2 overflow-hidden">
-          <div className="flex whitespace-nowrap animate-marquee">
-            <span className="text-yellow-500 text-sm font-medium px-4">
-              ⚠️ <strong>Note:</strong> This is a testnet phase and it only uses
-              test tokens at the moment, but nevertheless it accepts real assets
-              as well.
-            </span>
-            {/* Duplicate for seamless loop */}
-            <span
-              className="text-yellow-500 text-sm font-medium px-4"
-              aria-hidden="true"
-            >
-              ⚠️ <strong>Note:</strong> This is a testnet phase and it only uses
-              test tokens at the moment, but nevertheless it accepts real assets
-              as well.
-            </span>
-          </div>
-        </div>
 
         {/* ONBOARDING BLOCKS - Added max-width and centered */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
@@ -1342,6 +1341,8 @@ export default function Home() {
         .animate-scanline {
           animation: scanline 8s linear infinite;
         }
+
+        
       `}</style>
     </main>
   );
