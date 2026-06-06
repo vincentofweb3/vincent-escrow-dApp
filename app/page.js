@@ -43,6 +43,15 @@ export default function Home() {
   const [view, setView] = useState("landing");
   const [intent, setIntent] = useState("");
 
+  // const [isConnected, setIsConnected] = useState(false);
+  // const [currentChainId, setCurrentChainId] = useState("");
+
+
+  // Define your Arc Testnet target chain ID constant if it's missing
+  const ARC_CHAIN_ID = "0x4cee32";
+
+  // Add this right below your useAccount() hook (around line 110)
+
   // ERC-8183 Required Parameters
   const [freelancerAddr, setFreelancerAddr] = useState(""); // This is _provider
   const [evaluatorAddr, setEvaluatorAddr] = useState(""); // Defaults to user address if empty
