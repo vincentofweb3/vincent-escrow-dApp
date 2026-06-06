@@ -9,13 +9,13 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
   useReadContract,
-  useSwitchChain,
-  useBalance,
 } from "wagmi";
 import { injected } from "wagmi/connectors";
-
-// ERC-8183 UPDATE: Import the single Escrow contract details
-import { VANTAGE_ESCROW_ADDRESS, VANTAGE_ESCROW_ABI } from "../lib/contract";
+import {
+  VANTAGE_FACTORY_ADDRESS,
+  VANTAGE_FACTORY_ABI,
+  VANTAGE_INSTANCE_ABI,
+} from "../lib/contract";
 import { parseEther, formatEther } from "viem";
 
 import ConnectWallet from "../components/ConnectWallet";
@@ -42,30 +42,20 @@ const StatusBadge = ({ label, active }) => (
 export default function Home() {
   const [view, setView] = useState("landing");
   const [intent, setIntent] = useState("");
-
-  // ERC-8183 Required Parameters
-  const [freelancerAddr, setFreelancerAddr] = useState(""); // This is _provider
-  const [evaluatorAddr, setEvaluatorAddr] = useState(""); // Defaults to user address if empty
-  const [tokenAddr, setTokenAddr] = useState(
-    "0x0000000000000000000000000000000000000000",
-  ); // Standard dummy for native token
+  const [freelancerAddr, setFreelancerAddr] = useState("");
   const [amount, setAmount] = useState("");
-
-  const { address } = useAccount();
-  const { data: balanceData } = useBalance({
-    address: address,
-  });
-
+  const [activeContract, setActiveContract] = useState(null);
   const [tgLinked, setTgLinked] = useState(false);
   const [lastProcessedFile, setLastProcessedFile] = useState(null);
+
   const [lastLoggedFile, setLastLoggedFile] = useState(null);
 
   const [showSuccess, setShowSuccess] = useState(false);
+  const [deployedAddress, setDeployedAddress] = useState("");
 
-  // const { address, isConnected, chain } = useAccount();
+  const { address, isConnected, chain } = useAccount(); // Ensure 'chain' is here!
   const { connect } = useConnect();
   const { disconnect } = useDisconnect();
-  // const [isCorrectNetwork, setIsCorrectNetwork] = useState(true);
 
   const config = useConfig();
 
@@ -79,7 +69,7 @@ export default function Home() {
   - Status: Awaiting escrow parameters...
   - Security: Sentinel Bot is standing by.`;
 
-  // 2. Create the 'text' state variable
+  // 2. Create the 'text' state variable that the error is complaining about
   const [text, setText] = useState("");
 
   // 3. The logic that actually types the letters one by one
@@ -89,6 +79,7 @@ export default function Home() {
       setText(fullTerminalText.slice(0, i));
       i++;
       if (i > fullTerminalText.length) {
+        // This pause at the end makes it look more natural before it restarts
         setTimeout(() => {
           i = 0;
         }, 3000);
@@ -97,166 +88,84 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  const { isConnected, chainId } = useAccount();
-  const { switchChainAsync } = useSwitchChain();
-
-  // The exact integer ID from your viem/wagmi config
-  const ARC_TESTNET_ID = 5042002;
-
-  const handleSwitchNetwork = async () => {
-    try {
-      // Wagmi automatically handles adding the network if it's defined in your config
-      await switchChainAsync({ chainId: ARC_TESTNET_ID });
-    } catch (error) {
-      console.error("Switch chain error caught:", error);
-
-      // Fallback edge-case mechanism just in case Wagmi's injection fails
-      if (window.ethereum) {
-        try {
-          await window.ethereum.request({
-            method: "wallet_addEthereumChain",
-            params: [
-              {
-                // This dynamically converts the 5042002 integer to the correct hex (0x4cef52)
-                chainId: `0x${ARC_TESTNET_ID.toString(16)}`,
-                chainName: "Arc Testnet",
-                nativeCurrency: {
-                  name: "USD Coin",
-                  symbol: "USDC",
-                  decimals: 18,
-                },
-                rpcUrls: ["https://arc-testnet.drpc.org"],
-                blockExplorerUrls: ["https://testnet.arcscan.app"],
-              },
-            ],
-          });
-        } catch (addError) {
-          console.error("Manual add failed:", addError);
-        }
-      }
-    }
-  };
-
-  // const ARC_CHAIN_ID = "0x4cef52"; // Make sure this matches Arc's actual hex chain ID
-  // const [isConnected, setIsConnected] = useState(false);
-  // const [currentChainId, setCurrentChainId] = useState(null);
-  // const { isConnected, chainId } = useAccount();
-  // const { switchChainAsync } = useSwitchChain();
-
-  // const ARC_TESTNET_ID = 5042002;
-
-  // const handleSwitchNetwork = async () => {
-  //   try {
-  //     // Wagmi automatically handles adding the network if it's defined in your config!
-  //     await switchChainAsync({ chainId: ARC_TESTNET_ID });
-  //   } catch (error) {
-  //     console.error("Switch chain error caught:", error);
-
-  //     // Fallback fallback edge-case mechanism
-  //     if (window.ethereum) {
-  //       try {
-  //         await window.ethereum.request({
-  //           method: "wallet_addEthereumChain",
-  //           params: [
-  //             {
-  //               chainId: `0x${ARC_TESTNET_ID.toString(16)}`,
-  //               chainName: "Arc Testnet",
-  //               nativeCurrency: {
-  //                 name: "USD Coin",
-  //                 symbol: "USDC",
-  //                 decimals: 18,
-  //               },
-  //               rpcUrls: ["https://arc-testnet.drpc.org"],
-  //               blockExplorerUrls: ["https://testnet.arcscan.app"],
-  //             },
-  //           ],
-  //         });
-  //       } catch (addError) {
-  //         console.error("Manual add failed:", addError);
-  //       }
-  //     }
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   if (typeof window !== "undefined" && window.ethereum) {
-  //     // 1. Check initial connection and chain on page load
-  //     window.ethereum.request({ method: "eth_accounts" }).then((accounts) => {
-  //       setIsConnected(accounts.length > 0);
-  //     });
-
-  //     window.ethereum.request({ method: "eth_chainId" }).then((chainId) => {
-  //       setCurrentChainId(chainId.toLowerCase());
-  //     });
-
-  //     // 2. Set up event listeners for real-time changes
-  //     const handleChainChanged = (chainId) => {
-  //       setCurrentChainId(chainId.toLowerCase());
-  //     };
-
-  //     const handleAccountsChanged = (accounts) => {
-  //       setIsConnected(accounts.length > 0);
-  //     };
-
-  //     window.ethereum.on("chainChanged", handleChainChanged);
-  //     window.ethereum.on("accountsChanged", handleAccountsChanged);
-
-  //     // Clean up listeners on unmount
-  //     return () => {
-  //       window.ethereum.removeListener("chainChanged", handleChainChanged);
-  //       window.ethereum.removeListener(
-  //         "accountsChanged",
-  //         handleAccountsChanged,
-  //       );
-  //     };
-  //   }
-  // }, []);
-
-  // Derived state to determine if network is correct
-  const isCorrectNetwork = chainId === ARC_TESTNET_ID;
-
   const {
     writeContractAsync,
     data: txHash,
     isLoading,
     isSuccess,
   } = useWriteContract();
-
   const { isLoading: isTxLoading, isSuccess: isTxSuccess } =
     useWaitForTransactionReceipt({ hash: txHash });
 
-  // ERC-8183 UPDATE: Track Job ID instead of contract address
-  const [activeJobId, setActiveJobId] = useState(() => {
+  const VANTAGE_ESCROW_ABI = [
+    "function releaseFunds() public",
+    "function getDetails() public view returns (address, address, uint256, bool)",
+  ];
+
+  // Update your state with the specific Escrow address from the transaction
+  const [escrowAddress, setEscrowAddress] = useState(
+    "0x2964e525f053537C9076D4917C733C2932E761E6",
+  );
+
+  const [incomingFileName, setIncomingFileName] = useState("");
+
+  // Manually set this so the button appears since the page refreshed
+  const [botStatus, setBotStatus] = useState("");
+  // ... then your component starts below
+
+  // --- CONTRACT READS ---
+  const { data: allEscrows } = useReadContract({
+    address: VANTAGE_FACTORY_ADDRESS,
+    abi: VANTAGE_FACTORY_ABI,
+    functionName: "getEscrows",
+  });
+
+  // In app/page.js, these will now return TRUE or FALSE correctly
+  const { data: isFunded } = useReadContract({
+    address: activeContract,
+    abi: VANTAGE_INSTANCE_ABI,
+    functionName: "isFunded",
+    query: { enabled: !!activeContract },
+  });
+
+  const { data: isCompleted } = useReadContract({
+    address: activeContract,
+    abi: VANTAGE_INSTANCE_ABI,
+    functionName: "isCompleted",
+    query: { enabled: !!activeContract },
+  });
+
+  const { data: isReleased } = useReadContract({
+    address: activeContract,
+    abi: VANTAGE_INSTANCE_ABI, // Changed from just 'abi'
+    functionName: "isReleased",
+    query: { enabled: !!activeContract },
+  });
+
+  const [activeEscrowId, setActiveEscrowId] = useState(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("vantage_active_job");
-      return saved ? BigInt(saved) : null;
+      return localStorage.getItem("vantage_active_escrow");
     }
     return null;
   });
 
-  const [incomingFileName, setIncomingFileName] = useState("");
-  const [botStatus, setBotStatus] = useState("");
+  // const { data: isCompleted } = useReadContract({
+  //   address: activeContract,
+  //   abi: VANTAGE_INSTANCE_ABI, // Changed from abi
+  //   functionName: "currentStatus", // NOTE: Check if your contract uses 'currentStatus' or 'isCompleted'
+  //   query: { enabled: !!activeContract },
+  // });
 
-  // --- CONTRACT READS (ERC-8183) ---
-
-  // Read the single 'jobs' mapping based on the activeJobId
-  const { data: jobData } = useReadContract({
-    address: VANTAGE_ESCROW_ADDRESS,
-    abi: VANTAGE_ESCROW_ABI,
-    functionName: "jobs",
-    args: activeJobId !== null ? [activeJobId] : undefined,
-    query: { enabled: activeJobId !== null },
+  const { data: contractBalance } = useReadContract({
+    address: activeContract,
+    abi: VANTAGE_INSTANCE_ABI, // Changed from abi
+    functionName: "amount", // This matches the 'amount' variable in your Instance contract
+    query: { enabled: !!activeContract },
   });
 
-  // Parse the returned job tuple into readable states for your UI
-  // Tuple: [client, provider, evaluator, token, amount, state, deliverableHash]
-  // JobState Enum: 0 = Open, 1 = Funded, 2 = Submitted, 3 = Terminal
-  const jobState = jobData ? jobData[5] : null;
-  const isFunded = jobState !== null && jobState >= 1;
-  const isCompleted = jobState === 3;
-  const isReleased = jobState === 3;
-  const contractBalance = jobData ? jobData[4] : 0n;
-
+  {
+    /* --- ADD THESE STATE WRAPPERS TO YOUR COMPONENT --- */
+  }
   const [logs, setLogs] = useState([
     {
       id: 1,
@@ -266,6 +175,7 @@ export default function Home() {
     },
   ]);
 
+  // Helper to push new activities to the sidebar
   const addLog = (msg, type = "INFO") => {
     setLogs((prev) => [
       { id: Date.now(), msg, type, time: new Date().toLocaleTimeString() },
@@ -281,14 +191,32 @@ export default function Home() {
     if (amountMatch) setAmount(amountMatch[0]);
   }, [intent]);
 
+  // Auto-switch to dashboard if wallet connects
   useEffect(() => {
     if (isConnected && view === "landing") setView("dashboard");
   }, [isConnected, view]);
+
+  // This "polls" the API every 3 seconds to see if the bot sent a message
+  // --- UPDATED STATUS LISTENER ---
+
+  // useEffect(() => {
+  //   let i = 0;
+  //   const interval = setInterval(() => {
+  //     setText(fullText.slice(0, i));
+  //     i++;
+  //     if (i > fullText.length) {
+  //       setTimeout(() => { i = 0; }, 3000); // Pause at end, then restart
+  //     }
+  //   }, 50); // Speed of typing
+  //   return () => clearInterval(interval);
+  // }, []);
 
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
         const res = await fetch("/api/bot-status");
+
+        // Safety Check: If the API is down or returns 404/500, don't try to parse it
         if (!res.ok) {
           console.warn("Polling: API returned an error status", res.status);
           return;
@@ -296,15 +224,18 @@ export default function Home() {
 
         const data = await res.json();
 
+        // 1. Always update the main status state
         if (data && data.status) {
           setBotStatus(data.status);
         }
 
+        // 2. Handle Creation
         if (data.status === "ESCROW_CREATED") {
-          // If bot returns an ID now, save it. Otherwise log generic response.
-          addLog(`Job Captured via Bot`, "SYSTEM");
+          setEscrowAddress(data.escrowAddress);
+          addLog(`Verified Contract: ${data.escrowAddress}`, "SYSTEM");
         }
 
+        // 3. Handle File Submission
         if (
           data.status === "WORK_SUBMITTED" ||
           data.status === "LOGO_RECEIVED"
@@ -312,15 +243,17 @@ export default function Home() {
           addLog(`File captured: ${data.message || data.fileName}`, "DEPLOY");
         }
 
+        // 4. Handle the Release
         const isReleased =
           (typeof data.status === "string" &&
             data.status === "ESCROW_RELEASED") ||
           (typeof data.status === "number" && data.status === 2);
 
         if (isReleased) {
+          // Use a fallback if data.amount is missing to prevent crashes
           const displayAmt = data.amount || "1";
           addLog(`Release Confirmed! ${displayAmt} ARC sent.`, "FINISH");
-          setActiveJobId(null);
+          setEscrowAddress("");
           setBotStatus("IDLE");
         }
       } catch (err) {
@@ -331,14 +264,38 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
+  // useEffect(() => {
+  //   if (botStatus && botStatus.status === "WORK_SUBMITTED") {
+  //     // Only add to log if the last log isn't already this file submission
+  //     setLogs((prev) => {
+  //       const isDuplicate =
+  //         prev.length > 0 && prev[0].msg.includes(botStatus.fileName);
+  //       if (isDuplicate) return prev;
+
+  //       return [
+  //         {
+  //           id: Date.now(),
+  //           type: "DEPLOY",
+  //           time: new Date().toLocaleTimeString(),
+  //           msg: `File captured: Freelancer submitted ${botStatus.fileName}`,
+  //         },
+  //         ...prev,
+  //       ];
+  //     });
+  //   }
+  // }, [botStatus]);
+
   useEffect(() => {
     const syncBot = async () => {
       try {
         const res = await fetch("/api/bot-status");
         const data = await res.json();
 
+        // Update the status so the Release Button knows when to show up
         setBotStatus(data);
 
+        // THE LOCK: Only log if status is WORK_SUBMITTED AND it's a new filename
+        // We use 'lastLoggedFile' as the single source of truth for the lock
         if (
           data.status === "WORK_SUBMITTED" &&
           data.fileName &&
@@ -353,7 +310,8 @@ export default function Home() {
             },
             ...prev,
           ]);
-          setLastLoggedFile(data.fileName);
+
+          setLastLoggedFile(data.fileName); // This stops the replication permanently
         }
       } catch (err) {
         console.error("Bot sync failed:", err);
@@ -362,7 +320,7 @@ export default function Home() {
 
     const interval = setInterval(syncBot, 3000);
     return () => clearInterval(interval);
-  }, [lastLoggedFile]);
+  }, [lastLoggedFile]); // Keep this dependency so the 'if' statement always has the latest lock value
 
   useEffect(() => {
     const checkBotStatus = async () => {
@@ -372,6 +330,7 @@ export default function Home() {
 
         setBotStatus(data);
 
+        // ONLY add to log if this is a NEW file submission
         if (
           data.status === "WORK_SUBMITTED" &&
           data.fileName !== lastProcessedFile
@@ -386,6 +345,7 @@ export default function Home() {
             ...prev,
           ]);
 
+          // LOCK this file name so it doesn't log again
           setLastProcessedFile(data.fileName);
         }
       } catch (err) {
@@ -395,14 +355,21 @@ export default function Home() {
 
     const timer = setInterval(checkBotStatus, 3000);
     return () => clearInterval(timer);
-  }, [lastProcessedFile]);
+  }, [lastProcessedFile]); // Re-run when the lock changes
 
-  // Persist Job ID to local storage
-  if (typeof window !== "undefined" && activeJobId !== null) {
-    localStorage.setItem("vantage_active_job", activeJobId.toString());
+  // <--- KEEP THIS EMPTY. This fixes the "Changed Size" error permanently.
+
+  // When the escrow is detected
+  // This prevents the "localStorage is not defined" error
+  if (typeof window !== "undefined" && escrowAddress) {
+    localStorage.setItem("lastEscrow", escrowAddress);
   }
+  // When the page loads
+  useEffect(() => {
+    const saved = localStorage.getItem("lastEscrow");
+    if (saved) setEscrowAddress(saved);
+  }, []);
 
-  // --- DEPLOYMENT LOGIC (CREATE JOB) ---
   const handleCreateAndFund = async () => {
     if (Number(chain?.id) !== 5042002) {
       alert(
@@ -413,187 +380,168 @@ export default function Home() {
 
     try {
       const amountInWei = parseEther(amount);
-      const finalEvaluator = evaluatorAddr || address; // Use connected wallet as evaluator if empty
 
-      // ERC-8183 UPDATE: Call createJob with 4 parameters on the single contract
       const txHash = await writeContractAsync({
-        address: VANTAGE_ESCROW_ADDRESS,
-        abi: VANTAGE_ESCROW_ABI,
-        functionName: "createJob",
-        args: [freelancerAddr, finalEvaluator, tokenAddr, amountInWei],
+        address: VANTAGE_FACTORY_ADDRESS,
+        abi: VANTAGE_FACTORY_ABI,
+        functionName: "createEscrow",
+        args: [freelancerAddr],
+        value: amountInWei,
       });
 
       if (txHash) {
-        addLog(`Initiating Job creation for ${amount} ARC...`, "SYSTEM");
+        addLog(`Initiating Escrow for ${amount} ARC...`, "SYSTEM");
 
         const receipt = await waitForTransactionReceipt(config, {
           hash: txHash,
         });
 
-        // Parse logs to find the Job ID
-        const iface = new ethers.Interface(VANTAGE_ESCROW_ABI);
-        let newJobId = null;
+        // 1. Create an interface to parse the logs
+        const iface = new ethers.Interface(VANTAGE_FACTORY_ABI);
+        let newEscrowAddress = null;
 
+        // 2. Loop through logs and find the one that matches your Factory's "Created" event
         for (const log of receipt.logs) {
           try {
             const parsedLog = iface.parseLog(log);
-            if (parsedLog.name === "JobCreated") {
-              newJobId = parsedLog.args[0]; // The first arg is the jobId
+            // Look for an event name that sounds like 'Created' (e.g., EscrowCreated)
+            if (parsedLog.name.toLowerCase().includes("created")) {
+              // Usually the first argument is the new address
+              newEscrowAddress = parsedLog.args[0];
               break;
             }
           } catch (e) {
+            // Skip logs that don't match the ABI
             continue;
           }
         }
 
-        if (newJobId === null) {
-          throw new Error("Could not find valid Job ID in logs.");
+        // 3. Fallback: If no event was found, grab the very last log that ISN'T the factory
+        if (!newEscrowAddress) {
+          const internalLogs = receipt.logs.filter(
+            (l) =>
+              l.address.toLowerCase() !== VANTAGE_FACTORY_ADDRESS.toLowerCase(),
+          );
+          if (internalLogs.length > 0) {
+            newEscrowAddress = internalLogs[internalLogs.length - 1].address;
+          }
         }
 
-        // Update state and storage with the new ID
-        setActiveJobId(newJobId);
-        localStorage.setItem("vantage_active_job", newJobId.toString());
+        if (!newEscrowAddress || newEscrowAddress.startsWith("0x1800")) {
+          throw new Error("Could not find valid Escrow address in logs.");
+        }
 
-        addLog(
-          `Job Created Successfully! ID: ${newJobId.toString()}`,
-          "SYSTEM",
-        );
+        const finalAddr = ethers.getAddress(newEscrowAddress);
 
+        // 4. Update state and storage
+        setActiveEscrowId(finalAddr);
+        localStorage.setItem("vantage_active_escrow", finalAddr);
+        setActiveContract(true);
+
+        addLog(`Escrow Deployed: ${finalAddr.slice(0, 10)}...`, "SYSTEM");
+
+        setDeployedAddress(finalAddr); // Stores the address for the modal to display
         setShowSuccess(true);
       }
     } catch (e) {
-      console.error("Job Creation Error:", e);
+      console.error("Deployment Error:", e);
       addLog(`Error: ${e.message}`, "SYSTEM");
     }
   };
 
-  // --- RELEASE LOGIC (RESOLVE JOB) ---
+  //////////////////////////////////////////
+
   const handleReleaseFunds = async () => {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
 
-      // 1. Get the Job ID
-      const targetJob = localStorage.getItem("vantage_active_job");
+      // 1. Get the address saved during deployment
+      const target = localStorage.getItem("vantage_active_escrow");
 
-      if (targetJob === null) {
-        addLog("Error: No active Job found to release.", "SYSTEM");
-        alert("Action Error: No active job selected.");
+      // 2. SECURITY CHECK
+      const FACTORY = "0x7c91984E6ed2D181A6A83eB867f0998E49216eE5";
+      const DUMMY = "0x1800000000000000000000000000000000000000";
+
+      if (
+        !target ||
+        target.toLowerCase() === FACTORY.toLowerCase() ||
+        target.toLowerCase() === DUMMY
+      ) {
+        addLog(
+          "Error: No valid Escrow contract found. Please redeploy.",
+          "SYSTEM",
+        );
+        alert("Address Error: The app is pointing to a non-escrow address.");
         return;
       }
 
-      // 2. Setup Single Contract
+      const checksumAddress = ethers.getAddress(target);
+
+      // 3. Setup Contract
       const escrowContract = new ethers.Contract(
-        VANTAGE_ESCROW_ADDRESS,
-        VANTAGE_ESCROW_ABI,
+        checksumAddress,
+        ["function release() external"],
         signer,
       );
 
-      addLog(`Releasing funds for Job ID: ${targetJob}...`, "SYSTEM");
+      addLog(
+        `Releasing funds from: ${checksumAddress.slice(0, 10)}...`,
+        "SYSTEM",
+      );
 
-      // 3. Execute ERC-8183 resolveJob function
-      // True = Approved (Pay Provider), False = Rejected (Refund Client)
-      const tx = await escrowContract.resolveJob(targetJob, true);
+      // 4. Execute
+      const tx = await escrowContract.release();
       addLog("Transaction pending...", "SYSTEM");
 
       await tx.wait();
 
-      addLog(`Release Confirmed! ${amount || "Funds"} sent.`, "FINISH");
+      addLog(`Release Confirmed! ${amount || "Escrow"} ARC sent.`, "FINISH");
 
+      // CORRECTED CODE
       await fetch("/api/bot-status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status: "ESCROW_RELEASED",
-          amount: amount,
-          jobId: targetJob,
+          amount: amount, // Send the real amount here
+          escrowAddress: checksumAddress, // Send the address too
         }),
       });
 
       alert("🚀 Success! Funds released.");
-      localStorage.removeItem("vantage_active_job");
-      setActiveJobId(null);
+      localStorage.removeItem("vantage_active_escrow");
+      setActiveEscrowId(null);
       setBotStatus({ status: "IDLE" });
     } catch (err) {
       console.error("Release Error:", err);
       const msg =
-        err.reason || "Execution Reverted. Ensure you are the Evaluator.";
+        err.reason || "Invalid Selector: Contract address is incorrect.";
       addLog(`Error: ${msg}`, "SYSTEM");
       alert(msg);
     }
   };
 
-  // Alternate Ethers-based generalized function update
-  const createJobDirect = async (
-    freelancerAddress,
-    evaluatorAddress,
-    tokenAddress,
-    amountInArc,
-  ) => {
+  // This is the generalized version we need
+  const createEscrow = async (freelancerAddress, amountInArc) => {
     const amountInWei = ethers.parseEther(amountInArc.toString());
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
 
-    const escrowContract = new ethers.Contract(
-      VANTAGE_ESCROW_ADDRESS,
-      VANTAGE_ESCROW_ABI,
+    // Use the checksummed factory address
+    const factoryContract = new ethers.Contract(
+      VANTAGE_FACTORY_ADDRESS, // Use the address from your contract.js
+      VANTAGE_FACTORY_ABI,
       signer,
     );
 
-    const tx = await escrowContract.createJob(
+    // FIX: Only ONE argument inside the parentheses: freelancerAddress
+    // The money (value) goes in the overrides object { value: ... }
+    const tx = await factoryContract.createEscrow(
       ethers.getAddress(freelancerAddress),
-      ethers.getAddress(evaluatorAddress),
-      ethers.getAddress(tokenAddress),
-      amountInWei,
+      { value: amountInWei },
     );
 
     await tx.wait();
   };
-
-  // const switchNetwork = async () => {
-  //   if (!window.ethereum) {
-  //     alert("Please install a Web3 wallet!");
-  //     return;
-  //   }
-
-  //   try {
-  //     await window.ethereum.request({
-  //       method: "wallet_switchEthereumChain",
-  //       params: [{ chainId: ARC_CHAIN_ID }],
-  //     });
-  //   } catch (error) {
-  //     if (error.code === 4902) {
-  //       try {
-  //         await window.ethereum.request({
-  //           method: "wallet_addEthereumChain",
-  //           params: [
-  //             {
-  //               chainId: ARC_CHAIN_ID,
-  //               chainName: "Arc Testnet",
-  //               nativeCurrency: {
-  //                 name: "ARC",
-  //                 symbol: "ARC",
-  //                 decimals: 18,
-  //               },
-  //               rpcUrls: ["https://testnet-rpc.arc.network"],
-  //               blockExplorerUrls: ["https://explorer.arc.network"],
-  //             },
-  //           ],
-  //         });
-  //       } catch (addError) {
-  //         console.error("Error adding the Arc Testnet:", addError);
-  //       }
-  //     } else {
-  //       console.error("Failed to switch network:", error);
-  //     }
-  //   }
-  // };
-
-  // Optional: Add an effect to check the network on load/account change
-  // useEffect(() => {
-  //   checkNetwork();
-  //   window.ethereum?.on('chainChanged', checkNetwork);
-  // }, []);
 
   // --- RENDER LOGIC ---
 
@@ -992,7 +940,6 @@ export default function Home() {
       {/* NAVBAR */}
       <nav className="border-b border-white/5 bg-black/40 backdrop-blur-2xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 lg:px-6 h-20 flex justify-between items-center">
-          {/* LOGO */}
           <div
             className="flex items-center gap-3 cursor-pointer"
             onClick={() => setView("landing")}
@@ -1005,81 +952,21 @@ export default function Home() {
             </h1>
           </div>
 
-          {/* DESKTOP NAVIGATION LINKS */}
-          <div className="hidden lg:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-slate-400">
-            <button
-              onClick={() => setView("landing")}
-              className="hover:text-blue-400 transition-colors"
-            >
-              Home
-            </button>
-            <a
-              href="#how-it-works"
-              className="hover:text-blue-400 transition-colors"
-            >
-              How it Works
-            </a>
-            <a href="#about" className="hover:text-blue-400 transition-colors">
-              About
-            </a>
-            <a href="#docs" className="hover:text-blue-400 transition-colors">
-              Docs
-            </a>
-          </div>
-
-          {/* 3. Only render the balance if the wallet is actually connected */}
-          {isConnected && (
-            <div className="flex items-center mr-4 text-sm font-semibold tracking-wide text-white/80">
-              Balance:
-              {isLoading ? (
-                // Show a sleek loading pulse while Wagmi fetches from the blockchain
-                <span className="animate-pulse ml-2 text-white/50">
-                  Fetching...
-                </span>
-              ) : (
-                // Safely render the formatted number, defaulting to 0 if it fails, rounded to 4 decimals
-                <span className="ml-2 text-white">
-                  {balanceData?.formatted
-                    ? Number(balanceData.formatted).toFixed(4)
-                    : "0.00"}
-                </span>
-              )}
-              {/* Safely render the symbol, defaulting to USDC */}
-              <span className="ml-1.5 text-blue-400">
-                {balanceData?.symbol || "USDC"}
-              </span>
-            </div>
-          )}
-
-          {/* WALLET & NETWORK ACTIONS */}
           <div className="flex gap-4 items-center">
-            {/* Red Warning Button: Shows ONLY when the user is explicitly connected 
-              to a wallet, but their active chain ID does not match Arc 
-            */}
-            {isConnected && chainId !== ARC_TESTNET_ID && (
-              <button
-                onClick={handleSwitchNetwork}
-                className="flex bg-red-500/10 border border-red-500/30 text-red-500 text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl hover:bg-red-500/20 transition-all items-center gap-2 shadow-[0_0_15px_rgba(239,68,68,0.2)]"
-              >
-                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                Switch to Arc Network
-              </button>
-            )}
-
-            {/* The clean wallet connector profile/button */}
             <ConnectWallet />
           </div>
         </div>
       </nav>
 
-      {/* WARNING BANNER */}
       <div className="w-full bg-yellow-950/20 border-y border-yellow-600/30 py-2 overflow-hidden">
         <div className="flex whitespace-nowrap animate-marquee">
+          {/* First copy of text */}
           <span className="text-yellow-500 text-sm font-medium px-4">
             ⚠️ <strong>Note:</strong> This is a testnet phase and it only uses
             test tokens at the moment, but nevertheless it accepts real assets
             as well.
           </span>
+          {/* Second copy of text (the one that follows the first) */}
           <span className="text-yellow-500 text-sm font-medium px-4">
             ⚠️ <strong>Note:</strong> This is a testnet phase and it only uses
             test tokens at the moment, but nevertheless it accepts real assets
@@ -1089,7 +976,9 @@ export default function Home() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* ONBOARDING BLOCKS */}
+        {/* Header / Nav would be above here */}
+
+        {/* ONBOARDING BLOCKS - Added max-width and centered */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           {/* CLIENT BLOCK */}
           <div className="group bg-blue-900/5 border border-blue-500/20 rounded-3xl p-8 hover:border-blue-500/40 transition-all duration-300 shadow-2xl">
@@ -1184,6 +1073,7 @@ export default function Home() {
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a0a] px-4 text-[10px] text-white/20 font-black uppercase tracking-[0.3em]">
             Autonomous Intent Engine
           </div>
+          {/* Your Intent Engine and Live Log component goes here */}
         </div>
       </div>
 
@@ -1213,7 +1103,7 @@ export default function Home() {
                   handleCreateAndFund();
                   addLog("Initiating Smart Contract Deployment...", "DEPLOY");
                 }}
-                disabled={!freelancerAddr || isTxLoading || !isCorrectNetwork}
+                disabled={!freelancerAddr || isTxLoading}
                 className="w-full lg:w-auto lg:ml-auto bg-blue-600 hover:bg-blue-500 disabled:bg-gray-800 px-10 py-4 rounded-2xl font-black text-sm transition-all shadow-lg shadow-blue-600/10"
               >
                 {isTxLoading ? "PROCESSING..." : "EXECUTE INTENT"}
@@ -1266,8 +1156,7 @@ export default function Home() {
                   </div>
                   <button
                     onClick={handleReleaseFunds}
-                    disabled={!isCorrectNetwork}
-                    className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-800 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-xl shadow-blue-600/20"
+                    className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-xl shadow-blue-600/20"
                   >
                     Approve & Release Payment
                   </button>
@@ -1452,6 +1341,8 @@ export default function Home() {
         .animate-scanline {
           animation: scanline 8s linear infinite;
         }
+
+        
       `}</style>
     </main>
   );
